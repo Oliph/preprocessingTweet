@@ -202,8 +202,8 @@ def preprocess_text(
     remove_url: bool = False,
     remove_mention: bool = False,
     remove_rt: bool = True,
-    remove_emoticon: bool = True,
-    remove_emoji: bool = True,
+    replace_emoticon: bool = True,
+    replace_emoji: bool = True,
 ):
     """
     Getting a tweet (string) and regex all the entities and replace them with a
@@ -260,11 +260,11 @@ def preprocess_text(
         sentence = remove_accent(sentence)
 
         # Replace emoticon if true
-        if remove_emoticon:
+        if replace_emoticon:
             sentence, emoticons = convert_emo(sentence, type_symbol='emoticon')
 
         # Replace emojis if True
-        if remove_emoji:
+        if replace_emoji:
             sentence, emojis = convert_emo(sentence, type_symbol='emoji')
 
         # Remove punctuations and numbers but keeping underscore
