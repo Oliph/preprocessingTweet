@@ -4,11 +4,9 @@ Pre-process a tweet text and return a cleaned version of it alongside the mentio
 import re
 
 import emot
-
 from gensim.utils import deaccent
-
-from nltk.stem import SnowballStemmer
 from nltk.corpus import stopwords
+from nltk.stem import SnowballStemmer
 from nltk.tokenize import RegexpTokenizer
 
 # Catch the mentions
@@ -30,11 +28,7 @@ to_split_re = re.compile(r"\w+")
 tokenizer = RegexpTokenizer(to_split_re)
 
 
-def remove_accent(sentence):
-    return deaccent(sentence)
-
-
-def return_token(txt: str, tokeniser=tokenizer):
+def return_token(txt: str, tokenizer=tokenizer):
     """
     Use a tokenizer to return text in a list format
     :params:
@@ -46,11 +40,33 @@ def return_token(txt: str, tokeniser=tokenizer):
     return tokenizer.tokenize(txt)
 
 
+def stem_text(txt: list, lang: str):
+    """
+    Return a stemmed version of the input list of words
+
+    :params:
+        txt list(): of str to stem
+        lang: str(): language of the text to clean
+    """
+    stemmer = SnowballStemmer(lang)
+    try:
+        if isinstance(txt, str):
+            return [stemmer.stem(w) for w in txt.split(" ") if len(w) > 0]
+        elif isinstance(txt, list):
+            return [stemmer.stem(w) for w in txt if len(w) > 0]
+    except TypeError:  # In case of np.NaN
+        return txt
+
+
+def remove_accent(sentence):
+    return deaccent(sentence)
+
+
 def remove_stop(txt, lang):
-    """
-    """
+    """ """
     stop_words = set(stopwords.words(lang))
-    stop_words.update([".", ",", '"', "'", ":", ";", "(", ")", "[", "]", "{", "}"])
+    stop_words.update([".", ",", '"', "'", ":", ";",
+                      "(", ")", "[", "]", "{", "}"])
     # TODO Remove all first person plural from the set
     # stop_words.update(["MENTION".lower(), "RT".lower(), "URL".lower()])
     if isinstance(txt, str):
@@ -65,9 +81,9 @@ def remove_stop(txt, lang):
         return None
 
 
-def convert_emo(text, type_symbol='emoticon'):
-    """
-    """
+def convert_emo(text, type_symbol="emoticon"):
+    """ """
+
     def replace_emo(txt, indexes, replacements):
         for (index, replacement) in zip(indexes, replacements):
             txt[index] = replacement
@@ -75,10 +91,10 @@ def convert_emo(text, type_symbol='emoticon'):
 
     replacement = None
     converter_emo = emot.core.emot()
-    if type_symbol == 'emoticon':
-        converted_emo= converter_emo.emoticons(text)
-    elif type_symbol == 'emoji':
-        converted_emo= converter_emo.emoji(text)
+    if type_symbol == "emoticon":
+        converted_emo = converter_emo.emoticons(text)
+    elif type_symbol == "emoji":
+        converted_emo = converter_emo.emoji(text)
     else:
         raise Exception("Need a type of symbol, either emoticon or emoji")
     if converted_emo["flag"] is True:
@@ -86,8 +102,17 @@ def convert_emo(text, type_symbol='emoticon'):
         idx_emo = [
             location[0] for location in converted_emo["location"]
         ]  # Get the first el as it is a single car
-        replacement = converted_emo["mean"] 
-        replacement = ['__' + x.upper().replace(', ', '_').replace(' or ', '_').replace(' ', '_').replace(':', '') + '__' for x in replacement]
+        replacement = converted_emo["mean"]
+        replacement = [
+            "__"
+            + x.upper()
+            .replace(", ", "_")
+            .replace(" or ", "_")
+            .replace(" ", "_")
+            .replace(":", "")
+            + "__"
+            for x in replacement
+        ]
         text = replace_emo(
             text,
             idx_emo,
@@ -98,8 +123,7 @@ def convert_emo(text, type_symbol='emoticon'):
 
 
 def remove_mentions_from_txt(txt, remove_mention, mention_re):
-    """
-    """
+    """ """
     if remove_mention is True:
         mention_replace = ""
     else:
@@ -109,8 +133,7 @@ def remove_mentions_from_txt(txt, remove_mention, mention_re):
 
 
 def remove_urls_from_txt(txt, remove_url, url_re):
-    """
-    """
+    """ """
     if remove_url is True:
         url_replace = ""
     else:
@@ -120,8 +143,7 @@ def remove_urls_from_txt(txt, remove_url, url_re):
 
 
 def remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re):
-    """
-    """
+    """ """
     if remove_hashtag is True:
         txt, hashtags = remove_compiled_regex(txt, hashtag_re, "__HASHTAG__")
     else:
@@ -131,8 +153,7 @@ def remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re):
 
 
 def remove_rt_from_txt(txt, remove_rt, rt_re):
-    """
-    """
+    """ """
     if remove_rt is True:
         rt_replace = ""
     else:
@@ -160,40 +181,23 @@ def remove_entities(
     remove_mention: bool,
     remove_rt: bool,
 ):
-    """
-    """
+    """ """
     # Replace User mentions tags
-    txt, mentions_lists = remove_mentions_from_txt(txt, remove_mention, mention_re)
+    txt, mentions_lists = remove_mentions_from_txt(
+        txt, remove_mention, mention_re)
 
     # Remove URL
     txt, urls_lists = remove_urls_from_txt(txt, remove_url, url_re)
 
     # Remove Hashtags
     # We keep the hashtags as they can be normal words
-    txt, hashtags_list = remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re)
+    txt, hashtags_list = remove_hashtags_from_txt(
+        txt, remove_hashtag, hashtag_re)
 
     # Remove RT symbol
     txt, rt_bool = remove_rt_from_txt(txt, remove_rt, rt_re)
 
     return txt, mentions_lists, urls_lists, hashtags_list, rt_bool
-
-
-def stem_text(txt: list, lang: str):
-    """
-    Return a stemmed version of the input list of words
-
-    :params:
-        txt list(): of str to stem
-        lang: str(): language of the text to clean
-    """
-    stemmer = SnowballStemmer(lang)
-    try:
-        if isinstance(txt, str):
-            return [stemmer.stem(w) for w in txt.split(" ") if len(w) > 0]
-        elif isinstance(txt, list):
-            return [stemmer.stem(w) for w in txt if len(w) > 0]
-    except TypeError:  # In case of np.NaN
-        return txt
 
 
 def preprocess_text(
@@ -244,13 +248,7 @@ def preprocess_text(
         sentence = sentence.lower()
 
         # remove entities and get the list of the removed object if need future parsing
-        (
-            sentence,
-            mentions,
-            urls,
-            hashtags,
-            rt_status,
-        ) = remove_entities(
+        (sentence, mentions, urls, hashtags, rt_status,) = remove_entities(
             sentence, remove_mention, remove_url, remove_hashtag, remove_rt
         )
         # Single character removal
@@ -261,11 +259,11 @@ def preprocess_text(
 
         # Replace emoticon if true
         if replace_emoticon:
-            sentence, emoticons = convert_emo(sentence, type_symbol='emoticon')
+            sentence, emoticons = convert_emo(sentence, type_symbol="emoticon")
 
         # Replace emojis if True
         if replace_emoji:
-            sentence, emojis = convert_emo(sentence, type_symbol='emoji')
+            sentence, emojis = convert_emo(sentence, type_symbol="emoji")
 
         # Remove punctuations and numbers but keeping underscore
         sentence = re.sub("[^a-zA-Z_]", " ", sentence)
@@ -290,7 +288,9 @@ def preprocess_text(
 
 def main():
 
-    original_tweet = "RT @Toto, this is a sada ter for the ❤ @mentions of an #hastags :(,  :), :<"
+    original_tweet = (
+        "RT @Toto, this is a sada ter for the ❤ @mentions of an #hastags :(,  :), :<"
+    )
     print("Original Tweet")
     print(original_tweet)
 
@@ -304,6 +304,14 @@ def main():
     process_tweet = preprocess_text(second_tweet)
     print("Preprocess tweet")
     print(process_tweet)
+
+    print("Token tweet")
+    token_tweet = tokenizer(process_tweet, lang="spanish")
+    print(token_tweet)
+
+    print("Stem tweet")
+    stem_tweet = stem_text(process_tweet["tweet"], lang="spanish")
+    print(stem_tweet)
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
-import logging
 import datetime
-import pytz
+import logging
+
 import preprocessingText
+import pytz
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 
@@ -78,9 +79,8 @@ def process_tweet(tweet, lang):
         tweet_to_return["rt_status"] = remove_entities["rt_status"]
 
     try:
-        tweet_to_return["user_mentions"] = [
-            x["screen_name"].lower() for x in tweet["entities"]["user_mentions"]
-        ]
+        tweet_to_return["user_mentions"] = [x["screen_name"].lower() for x in tweet["entities"]["user_mentions"]
+                                            ]
     except KeyError:
         tweet_to_return['user_mentions'] = remove_entities['mentions']
 
@@ -99,7 +99,8 @@ def process_tweet(tweet, lang):
         tweet_to_return["hashtags"] = remove_entities['hashtags']
 
     try:
-        tweet_to_return["urls"] = [x["expanded_url"] for x in tweet["entities"]["urls"]]
+        tweet_to_return["urls"] = [x["expanded_url"]
+                                   for x in tweet["entities"]["urls"]]
     except KeyError:
         tweet_to_return["urls"] = remove_entities['urls']
 
