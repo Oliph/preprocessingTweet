@@ -1,7 +1,7 @@
 import logging
 import datetime
 import pytz
-import preProcessingText
+import preprocessingText
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 
@@ -48,7 +48,7 @@ def process_tweet(tweet, lang):
         except KeyError:
             tweet_to_return["text"] = tweet["text"]
 
-    remove_entities = preProcessingText.preprocess_text(
+    remove_entities = preprocessingText.preprocess_text(
         tweet_to_return["text"],
         remove_mention=True,
         remove_url=True,
@@ -57,15 +57,15 @@ def process_tweet(tweet, lang):
 
     tweet_to_return["txt_wo_entities"] = remove_entities["tweet"]
 
-    tweet_to_return["clean_stemmed_text"] = preProcessingText.stem_text(
+    tweet_to_return["clean_stemmed_text"] = preprocessingText.stem_text(
         tweet_to_return["txt_wo_entities"]
     )
 
-    tweet_to_return["token_txt"] = preProcessingText.return_token(
+    tweet_to_return["token_txt"] = preprocessingText.return_token(
         tweet_to_return["txt_wo_entities"]
     )
 
-    tweet_to_return["token_stemmed_txt"] = preProcessingText.return_token(
+    tweet_to_return["token_stemmed_txt"] = preprocessingText.return_token(
         tweet_to_return["clean_stemmed_text"]
     )
 
