@@ -25,10 +25,9 @@ rt_re = re.compile(r"^RT", re.IGNORECASE)
 
 # Tokeniser
 to_split_re = re.compile(r"\w+")
-tokenizer = RegexpTokenizer(to_split_re)
 
 
-def return_token(txt: str, tokenizer=tokenizer):
+def return_token(txt: str, tokenizer=None):
     """
     Use a tokenizer to return text in a list format
     :params:
@@ -37,6 +36,10 @@ def return_token(txt: str, tokenizer=tokenizer):
     :return:
         list() of tokens
     """
+    if isinstance(txt, list):
+        txt = " ".join(txt)
+    if tokenizer is None:
+        tokenizer = RegexpTokenizer(to_split_re)
     return tokenizer.tokenize(txt)
 
 
@@ -65,8 +68,7 @@ def remove_accent(sentence):
 def remove_stop(txt, lang):
     """ """
     stop_words = set(stopwords.words(lang))
-    stop_words.update([".", ",", '"', "'", ":", ";",
-                      "(", ")", "[", "]", "{", "}"])
+    stop_words.update([".", ",", '"', "'", ":", ";", "(", ")", "[", "]", "{", "}"])
     # TODO Remove all first person plural from the set
     # stop_words.update(["MENTION".lower(), "RT".lower(), "URL".lower()])
     if isinstance(txt, str):
@@ -183,16 +185,14 @@ def remove_entities(
 ):
     """ """
     # Replace User mentions tags
-    txt, mentions_lists = remove_mentions_from_txt(
-        txt, remove_mention, mention_re)
+    txt, mentions_lists = remove_mentions_from_txt(txt, remove_mention, mention_re)
 
     # Remove URL
     txt, urls_lists = remove_urls_from_txt(txt, remove_url, url_re)
 
     # Remove Hashtags
     # We keep the hashtags as they can be normal words
-    txt, hashtags_list = remove_hashtags_from_txt(
-        txt, remove_hashtag, hashtag_re)
+    txt, hashtags_list = remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re)
 
     # Remove RT symbol
     txt, rt_bool = remove_rt_from_txt(txt, remove_rt, rt_re)
@@ -288,25 +288,15 @@ def preprocess_text(
 
 def main():
 
-    original_tweet = (
-        "RT @Toto, this is a sada ter for the ❤ @mentions of an #hastags :(,  :), :<"
-    )
+    test_tweet = "__MENTION__ __MENTION__ enserio cuando habeis dicho que los froot loops estan malos me ha dolido...  ❤ @mentions of an #hastags :(,  :), :< @Toto, #hastags"
     print("Original Tweet")
-    print(original_tweet)
-
-    process_tweet = preprocess_text(original_tweet)
-    print("Preprocess tweet")
-    print(process_tweet)
-
-    second_tweet = "__MENTION__ __MENTION__ enserio cuando habeis dicho que los froot loops estan malos me ha dolido..."
-    print("Original Tweet")
-    print(second_tweet)
-    process_tweet = preprocess_text(second_tweet)
+    print(test_tweet)
+    process_tweet = preprocess_text(test_tweet)
     print("Preprocess tweet")
     print(process_tweet)
 
     print("Token tweet")
-    token_tweet = tokenizer(process_tweet, lang="spanish")
+    token_tweet = return_token(process_tweet["tweet"])
     print(token_tweet)
 
     print("Stem tweet")
