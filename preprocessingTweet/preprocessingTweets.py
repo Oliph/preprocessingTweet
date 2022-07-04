@@ -50,15 +50,17 @@ def process_tweet(tweet, lang):
 
     remove_entities = preprocessingText.preprocess_text(
         tweet_to_return["text"],
-        remove_mention=True,
-        remove_url=True,
-        remove_rt=True,
+        remove_mention=False,
+        remove_url=False,
+        remove_rt=False,
+        replace_emoticon=True,
+        replace_emoji=True,
     )
 
     tweet_to_return["txt_wo_entities"] = remove_entities["tweet"]
 
-    tweet_to_return["clean_stemmed_text"] = preprocessingText.stem_text(
-        tweet_to_return["txt_wo_entities"]
+    tweet_to_return["stemmed_text"] = preprocessingText.stem_text(
+        tweet_to_return["txt_wo_entities"], lang=lang
     )
 
     tweet_to_return["token_txt"] = preprocessingText.return_token(
@@ -66,7 +68,7 @@ def process_tweet(tweet, lang):
     )
 
     tweet_to_return["token_stemmed_txt"] = preprocessingText.return_token(
-        tweet_to_return["clean_stemmed_text"]
+        tweet_to_return["stemmed_text"]
     )
 
     tweet_to_return["word_count"] = len(tweet_to_return["token_txt"])
