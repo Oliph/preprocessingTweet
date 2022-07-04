@@ -65,48 +65,36 @@ def remove_stop(txt, lang):
         return None
 
 
-def convert_emojis(text):
+def convert_emo(text, type_symbol='emoticon'):
     """
     """
-    def replace_emoji(txt, indexes, replacements):
+    def replace_emo(txt, indexes, replacements):
         for (index, replacement) in zip(indexes, replacements):
             txt[index] = replacement
         return txt
 
-    converted_emojis = emot.emoji(text)
-    if converted_emojis["flag"] is True:
+    replacement = None
+    converter_emo = emot.core.emot()
+    if type_symbol == 'emoticon':
+        converted_emo= converter_emo.emoticons(text)
+    elif type_symbol == 'emoji':
+        converted_emo= converter_emo.emoji(text)
+    else:
+        raise Exception("Need a type of symbol, either emoticon or emoji")
+    if converted_emo["flag"] is True:
         text = [x for x in text]
-        idx_emojis = [
-            location[0] for location in converted_emojis["location"]
+        idx_emo = [
+            location[0] for location in converted_emo["location"]
         ]  # Get the first el as it is a single car
-        text = replace_emoji(
+        replacement = converted_emo["mean"] 
+        replacement = ['__' + x.upper().replace(', ', '_').replace(' or ', '_').replace(' ', '_').replace(':', '') + '__' for x in replacement]
+        text = replace_emo(
             text,
-            idx_emojis,
-            converted_emojis["mean"],
+            idx_emo,
+            replacement,
         )
         text = "".join(text)
-    return text
-
-
-def convert_emoticons(text):
-    """
-    """
-    def replace_emoticons(l, id_to_del, replacements):
-        for idx, replacement in zip(
-            sorted(id_to_del, reverse=True), sorted(replacements, reverse=True)
-        ):
-            del l[idx[0] : idx[-1]]
-            l[idx[0] : idx[0]] = [x for x in replacement]
-        return l
-
-    converted_emoticons = emot.emoticons(text)
-    if converted_emoticons["flag"] is True:
-        text = [x for x in text]
-        text = replace_emoticons(
-            text, converted_emoticons["location"], converted_emoticons["mean"]
-        )
-        text = "".join(text)
-    return text
+    return text, replacement
 
 
 def remove_mentions_from_txt(txt, remove_mention, mention_re):
@@ -167,10 +155,10 @@ def remove_compiled_regex(txt: str, compiled_regex: re.compile, substitute: str 
 
 def remove_entities(
     txt: str,
-    remove_hashtag: bool = False,
-    remove_url: bool = False,
-    remove_mention: bool = False,
-    remove_rt: bool = False,
+    remove_hashtag: bool,
+    remove_url: bool,
+    remove_mention: bool,
+    remove_rt: bool,
 ):
     """
     """
@@ -213,7 +201,7 @@ def preprocess_text(
     remove_hashtag: bool = False,
     remove_url: bool = False,
     remove_mention: bool = False,
-    remove_rt: bool = False,
+    remove_rt: bool = True,
     remove_emoticon: bool = True,
     remove_emoji: bool = True,
 ):
@@ -249,6 +237,8 @@ def preprocess_text(
     urls = None
     hashtags = None
     rt_status = None
+    emoticons = None
+    emojis = None
     try:
         # lowering all words
         sentence = sentence.lower()
@@ -271,14 +261,14 @@ def preprocess_text(
 
         # Replace emoticon if true
         if remove_emoticon:
-            sentence = convert_emoticons(sentence)
+            sentence, emoticons = convert_emo(sentence, type_symbol='emoticon')
 
         # Replace emojis if True
         if remove_emoji:
-            sentence = convert_emojis(sentence)
+            sentence, emojis = convert_emo(sentence, type_symbol='emoji')
 
-        # Remove punctuations and numbers
-        sentence = re.sub("[^a-zA-Z]", " ", sentence)
+        # Remove punctuations and numbers but keeping underscore
+        sentence = re.sub("[^a-zA-Z_]", " ", sentence)
 
         # Removing multiple spaces
         sentence = " ".join(sentence.split())
@@ -293,12 +283,14 @@ def preprocess_text(
         "urls": urls,
         "hashtags": hashtags,
         "rt_status": rt_status,
+        "emoticons": emoticons,
+        "emojis": emojis,
     }
 
 
 def main():
 
-    original_tweet = "RT @Toto, this is a sada ter for the @mentions of an #hastags"
+    original_tweet = "RT @Toto, this is a sada ter for the ❤ @mentions of an #hastags :(,  :), :<"
     print("Original Tweet")
     print(original_tweet)
 
