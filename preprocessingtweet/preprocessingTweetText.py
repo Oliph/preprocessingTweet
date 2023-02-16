@@ -106,13 +106,13 @@ def convert_emo(text, type_symbol="emoticon"):
         ]  # Get the first el as it is a single car
         replacement = converted_emo["mean"]
         replacement = [
-            "__"
-            + x.upper()
+            "__" +
+            x.upper()
             .replace(", ", "_")
             .replace(" or ", "_")
             .replace(" ", "_")
-            .replace(":", "")
-            + "__"
+            .replace(":", "") +
+            "__"
             for x in replacement
         ]
         text = replace_emo(
@@ -229,13 +229,13 @@ def preprocess_text(
         remove_emoji bool(): if remove the emojis and replace with their value (Default: True)
 
     :return:
-        sentences list(), mentions list(), urls list(), hashtags list(), rt_status bool()
-        if return_dict:
-            dict(sentence: list(),
-                 mentions: list(),
-                 urls: list(),
-                 hashtags: list(),
-                 rt_status: bool())
+        dict(tweet: str(),
+             mentions: list(),
+             urls: list(),
+             hashtags: list(),
+             rt_status: bool(),
+             emoticons: list(),
+             emojis: list())
     """
     mentions = None
     urls = None
@@ -284,6 +284,10 @@ def preprocess_text(
         "emoticons": emoticons,
         "emojis": emojis,
     }
+
+
+def preprocessing_list_text(list_to_process):
+    raise NotImplementedError()
 
 
 def main():
