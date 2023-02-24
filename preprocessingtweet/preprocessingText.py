@@ -68,7 +68,8 @@ def remove_accent(sentence):
 def remove_stop(txt, lang):
     """ """
     stop_words = set(stopwords.words(lang))
-    stop_words.update([".", ",", '"', "'", ":", ";", "(", ")", "[", "]", "{", "}"])
+    stop_words.update([".", ",", '"', "'", ":", ";",
+                      "(", ")", "[", "]", "{", "}"])
     # TODO Remove all first person plural from the set
     # stop_words.update(["MENTION".lower(), "RT".lower(), "URL".lower()])
     if isinstance(txt, str):
@@ -106,13 +107,13 @@ def convert_emo(text, type_symbol="emoticon"):
         ]  # Get the first el as it is a single car
         replacement = converted_emo["mean"]
         replacement = [
-            "__"
-            + x.upper()
+            "__" +
+            x.upper()
             .replace(", ", "_")
             .replace(" or ", "_")
             .replace(" ", "_")
-            .replace(":", "")
-            + "__"
+            .replace(":", "") +
+            "__"
             for x in replacement
         ]
         text = replace_emo(
@@ -150,7 +151,7 @@ def remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re):
         txt, hashtags = remove_compiled_regex(txt, hashtag_re, "__HASHTAG__")
     else:
         hashtags = hashtag_re.findall(txt)
-        txt = txt.replace("#", "")
+        # txt = txt.replace("#", "")
     return txt, hashtags
 
 
@@ -176,23 +177,37 @@ def remove_compiled_regex(txt: str, compiled_regex: re.compile, substitute: str 
     return txt, entities
 
 
-def remove_entities(
-    txt: str,
-    remove_hashtag: bool,
-    remove_url: bool,
-    remove_mention: bool,
-    remove_rt: bool,
-):
-    """ """
-    # Replace User mentions tags
-    txt, mentions_lists = remove_mentions_from_txt(txt, remove_mention, mention_re)
+def remove_entities(txt: str,
+                    remove_hashtag: bool,
+                    remove_url: bool,
+                    remove_mention: bool,
+                    remove_rt: bool) -> tuple(str, list[str], list[str], list[str], bool):
+    """
+    Removes entities from an input text, such as mentions, URLs, hashtags, and retweet symbols.
+
+    Args:
+        txt (str): The input text to process.
+        remove_hashtag (bool): Whether to remove hashtags from the input text.
+        remove_url (bool): Whether to remove URLs from the input text.
+        remove_mention (bool): Whether to remove mentions from the input text.
+        remove_rt (bool): Whether to remove "RT" (retweet) from the input text.
+
+    Returns:
+        tuple: A tuple containing the processed text and any removed entities. The first element of the tuple
+            is the processed text as a string, while the remaining elements are lists containing any removed
+            mentions, URLs, hashtags, and the retweet status as a boolean value (True if the input text is a retweet,
+            False otherwise).
+    """
+    txt, mentions_lists = remove_mentions_from_txt(
+        txt, remove_mention, mention_re)
 
     # Remove URL
     txt, urls_lists = remove_urls_from_txt(txt, remove_url, url_re)
 
     # Remove Hashtags
     # We keep the hashtags as they can be normal words
-    txt, hashtags_list = remove_hashtags_from_txt(txt, remove_hashtag, hashtag_re)
+    txt, hashtags_list = remove_hashtags_from_txt(
+        txt, remove_hashtag, hashtag_re)
 
     # Remove RT symbol
     txt, rt_bool = remove_rt_from_txt(txt, remove_rt, rt_re)
@@ -202,6 +217,9 @@ def remove_entities(
 
 def preprocess_text(
     sentence: str,
+    lowercase: bool = False,
+    remove_accent: bool = False,
+    remove_punctuation: bool = False,
     remove_hashtag: bool = False,
     remove_url: bool = False,
     remove_mention: bool = False,
@@ -210,32 +228,28 @@ def preprocess_text(
     replace_emoji: bool = True,
 ):
     """
-    Getting a tweet (string) and regex all the entities and replace them with a
-    placeholder. Return all original entities in separated list
-    and if the tweet was a RT (contained RT at the beginning)
-    :params:
-        sentence str(): Tweet text
+    Preprocesses a text by performing a series of transformations, such as removing URLs, mentions, hashtags,
+    punctuation, and converting emojis and emoticons into text. The output is a dictionary containing the processed
+    text and any removed entities, such as URLs, mentions, or hashtags.
 
-        remove_hashtags bool(): if removes the hashtags or
-            just the symbol to keep it as a word (Default: False)
+    Args:
+        sentence (str): The input text to preprocess.
+        lowercase (bool, optional): Whether to convert the input text to lowercase. Defaults to False.
+        remove_accent (bool, optional): Whether to remove accents from characters. Defaults to False.
+        remove_punctuation (bool, optional): Whether to remove punctuation from the input text. Defaults to False.
+        remove_hashtag (bool, optional): Whether to remove hashtags from the input text. Defaults to False.
+        remove_url (bool, optional): Whether to remove URLs from the input text. Defaults to False.
+        remove_mention (bool, optional): Whether to remove mentions from the input text. Defaults to False.
+        remove_rt (bool, optional): Whether to remove "RT" (retweet) from the input text. Defaults to True.
+        replace_emoticon (bool, optional): Whether to convert emoticons into text. Defaults to True.
+        replace_emoji (bool, optional): Whether to convert emojis into text. Defaults to True.
 
-        remove_url boo(): if removes the URL or replaces it with URL(Default: False)
-
-        remove_mention bool(): if removes the mentions or replaces with MENTION (Default: False)
-
-        remove_rt bool(): if removes the rt or replaces with RT (Default: False)
-
-        remove_emoticon bool(): if remove the emoticons and replace with their value (Default: True)
-        remove_emoji bool(): if remove the emojis and replace with their value (Default: True)
-
-    :return:
-        sentences list(), mentions list(), urls list(), hashtags list(), rt_status bool()
-        if return_dict:
-            dict(sentence: list(),
-                 mentions: list(),
-                 urls: list(),
-                 hashtags: list(),
-                 rt_status: bool())
+    Returns:
+        dict: A dictionary containing the processed text and any removed entities, such as URLs, mentions, or hashtags.
+            The keys in the dictionary are: 'tweet' for the processed text, 'mentions' for any removed mentions,
+            'urls' for any removed URLs, 'hashtags' for any removed hashtags, 'rt_status' for the retweet status
+            (True if the input text is a retweet, False otherwise), 'emoticons' for any converted emoticons,
+            and 'emojis' for any converted emojis.
     """
     mentions = None
     urls = None
@@ -245,7 +259,8 @@ def preprocess_text(
     emojis = None
     try:
         # lowering all words
-        sentence = sentence.lower()
+        if lowercase:
+            sentence = sentence.lower()
 
         # remove entities and get the list of the removed object if need future parsing
         (sentence, mentions, urls, hashtags, rt_status,) = remove_entities(
@@ -255,7 +270,8 @@ def preprocess_text(
         # sentence = re.sub(r"\s+[a-zA-Z]\s+", " ", sentence)
 
         # Replace the accents with a normalised version
-        sentence = remove_accent(sentence)
+        if remove_accent:
+            sentence = remove_accent(sentence)
 
         # Replace emoticon if true
         if replace_emoticon:
@@ -266,7 +282,8 @@ def preprocess_text(
             sentence, emojis = convert_emo(sentence, type_symbol="emoji")
 
         # Remove punctuations and numbers but keeping underscore
-        sentence = re.sub("[^a-zA-Z_]", " ", sentence)
+        if remove_punctuation:
+            sentence = re.sub("[^a-zA-Z_]", " ", sentence)
 
         # Removing multiple spaces
         sentence = " ".join(sentence.split())
@@ -284,6 +301,10 @@ def preprocess_text(
         "emoticons": emoticons,
         "emojis": emojis,
     }
+
+
+def preprocessing_list_text(list_to_process):
+    raise NotImplementedError()
 
 
 def main():
