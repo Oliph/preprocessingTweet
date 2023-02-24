@@ -181,7 +181,7 @@ def remove_entities(txt: str,
                     remove_hashtag: bool,
                     remove_url: bool,
                     remove_mention: bool,
-                    remove_rt: bool) -> tuple(str, list[str], list[str], list[str], bool):
+                    remove_rt: bool):
     """
     Removes entities from an input text, such as mentions, URLs, hashtags, and retweet symbols.
 

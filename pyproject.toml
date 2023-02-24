@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "preprocessingTweet"
-version = "0.1.2.1"
+version = "0.1.5.1"
 description = "Preprocessing tweets prior to NLP pipeline"
 readme = "README.md"
 authors = ["Olivier R. Philippe <olivier.philippe@gmail.com>"]
